@@ -1,5 +1,13 @@
 <template>
-  <div class="page">
+  <div
+    class="page"
+    @scroll="onScoll"
+  >
+    <div
+      class="page-grid_0"
+      id="grid_0"
+      style="height: 40px; width: 100%"
+    ></div>
     <div
       class="page-grid_1"
       :style="{height: height.grid_1_height}"
@@ -33,7 +41,8 @@
     {
       field: 'sex',
       caption: '性别'
-    }, {
+    },
+    {
       field: 'level',
       caption: '等级'
     }
@@ -43,15 +52,16 @@
   export default {
     data () {
       return {
+        grid_0: null,
         grid: {
           grid_1: null,
           grid_2: null,
           grid_3: null,
         },
         offsetMap: {
-          grid_1_scroll: null,
-          grid_2_scroll: null,
-          grid_3_scroll: null,
+          grid_1: null,
+          grid_2: null,
+          grid_3: null,
         },
         records: {
           grid_1_records: [],
@@ -66,48 +76,67 @@
       }
     },
     mounted () {
-      const headers = getHeader(column)
+      const header = {
+        headers_1: getHeader(column),
+        headers_2: getHeader([...column, {
+          field: 'part',
+          caption: '部位'
+        }]),
+        headers_3: getHeader([...column, {
+          field: 'progress',
+          caption: '形象进度项'
+        }, {
+          field: 'part',
+          caption: '部位'
+        },])
+      }
+
       const gridKeys = Object.keys(this.grid)
+
+      this.initHeaderGrid({ headers: header.headers_1, el: '#grid_0' })
+
       gridKeys.forEach((key, i) => {
-        this.records[`${key}_records`] = Array.from({ length: Math.random(1) * 50 }, (v, i) => ({ name: '张三' + i, age: i * 2, sex: 'nan', level: i }))
+        this.records[`${key}_records`] = Array.from({ length: 50 }, (v, i) => ({ name: '张三' + i, age: i * 2, sex: 'nan', level: i }))
         this.getWrapperHeight({ records: this.records[`${key}_records`], gridHeight: `${key}_height` })
-        this.initGrid({ grid: `${key}`, el: `#${key}`, headers })
       })
       this.$nextTick(() => {
-        gridKeys.forEach(key => {
-          this.refreshGrid({ grid: this[key], records: this.records[`${key}_records`] })
+        gridKeys.forEach((key, i) => {
+          this.initGrid({ grid: `${key}`, el: `#${key}`, headers: header[`headers_${i + 1}`] })
+          this.refreshGrid({ grid: `${key}`, records: this.records[`${key}_records`] })
           this.computedOffsetTop({ grid: `${key}` })
         })
       })
     },
     methods: {
-      initGrid (options) {
-        this[options.grid] = new kakaGrid.ListGrid({
+      initHeaderGrid (options) {
+        this.grid_0 = new kakaGrid.ListGrid({
           theme: {
-            defaultRowHeight: 40
+            defaultRowHeight: 40,
+            highlightBorderColor: 'transparent'
           },
           parentElement: document.querySelector(options.el),
-          header: options.headers
+          header: options.headers,
         })
-        this[options.grid].addEventListener(kakaGrid.ListGrid.EVENT_TYPE.SCROLL, (e) => {
-          const gridNode = document.querySelector(`#${options.grid}`)
-          const pageNode = document.querySelector('.page')
-          console.log(gridNode.offsetTop, pageNode.scrollTop)
-          // 当前 grid 距离 父级元素顶部的距离 - 视口顶部距离父级元素的滚动距离 
-          if (gridNode.offsetTop !== pageNode.scrollTop) {
-            pageNode.scrollTop = this.offsetMap[`${options.grid}_scroll`]
-          }
+      },
+      initGrid (options) {
+        this.grid[options.grid] = new kakaGrid.ListGrid({
+          theme: {
+            defaultRowHeight: 40,
+            highlightBorderColor: 'transparent'
+          },
+          parentElement: document.querySelector(options.el),
+          header: options.headers,
         })
       },
       refreshGrid (options) {
-        if (options.grid) {
-          options.grid.records = options.records
-          options.grid.invalidate()
+        if (this.grid[options.grid]) {
+          this.grid[options.grid].records = options.records
+          this.grid[options.grid].invalidate()
         }
       },
       computedOffsetTop (options) {
         const gridNode = document.querySelector(`#${options.grid}`)
-        this.offsetMap[`${options.grid}_scroll`] = gridNode.offsetTop
+        this.offsetMap[`${options.grid}`] = gridNode.offsetTop
       },
       getWrapperHeight ({ records, gridHeight }) {
         const pageNode = document.querySelector('.page')
@@ -115,12 +144,19 @@
         const headerHeight = 48 + 16
         // 默认单元格 高度 40 
         const height = records.length * 40 + headerHeight
-        if (pageClientHeight > height) {
-          // 
-          this.height[gridHeight] = `${(height / pageClientHeight) * 100}%`
-        } else {
-          this.height[gridHeight] = '100%'
-        }
+        this.height[gridHeight] = height + 'px'
+      },
+      onScoll (e) {
+        const keys = Object.keys(this.offsetMap)
+        const offsetTopArr = Object.values(this.offsetMap)
+
+        const scrollTop = e.target.scrollTop
+        const index = offsetTopArr.findIndex((v, i) => (scrollTop >= v && (offsetTopArr[i + 1] && (offsetTopArr[i + 1] > scrollTop))) || !offsetTopArr[i + 1])
+        // keys[index]
+        this.grid_0.header = this.grid[keys[index]].header
+        // this.grid[keys[index]].hiddenHeader = true
+        // this.grid[keys[index]].invalidate()
+        this.grid_0.invalidate()
       }
     }
   }
@@ -135,14 +171,19 @@
     & .kaka-grid .grid-scrollable .ps__thumb-x {
       display: none;
     }
+    &-grid_0 {
+      position: fixed;
+      top: 0;
+      z-index: 999;
+    }
     &-grid_1 {
-      width: 50%;
+      width: 80%;
     }
     &-grid_2 {
-      width: 50%;
+      width: 80%;
     }
     &-grid_3 {
-      width: 50%;
+      width: 80%;
     }
   }
 </style>

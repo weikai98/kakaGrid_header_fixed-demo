@@ -7,7 +7,7 @@ const getHeader = (data) => {
         padding: '8px',
         textAlign: 'center'
       },
-      width: '20%',
+      width: '100px',
       style: rec => {
         return {
           padding: '8px',
