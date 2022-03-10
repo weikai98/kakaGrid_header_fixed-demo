@@ -1,0 +1,27 @@
+{
+  "name": "header_scroll_demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack serve"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.5",
+    "@babel/preset-env": "^7.16.11",
+    "@mctech/kaka-grid": "^2.3.27",
+    "@mctech/mussel": "^0.1.40",
+    "@mctech/perfect-scrollbar": "1.5.0-r1",
+    "babel-loader": "^8.2.3",
+    "css-loader": "^6.7.0",
+    "html-webpack-plugin": "^5.5.0",
+    "less": "^4.1.2",
+    "less-loader": "^10.2.0",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.9.6",
+    "vue-template-compiler": "^2.6.12",
+    "webpack": "^5.70.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4"
+  }
+}
